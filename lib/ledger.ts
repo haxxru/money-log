@@ -57,7 +57,7 @@ export function detectCategory(name: string): Category {
 
 export async function requireUser() {
   const supabase = createSupabaseServerClient();
-  if (!supabase) throw new Error("Supabase 환경변수가 필요합니다.");
+  if (!supabase) redirect("/login?error=config");
 
   const {
     data: { user },

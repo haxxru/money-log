@@ -12,7 +12,12 @@ export async function signInAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.message.includes("Invalid login credentials")) {
+      redirect("/login?error=invalid_credentials");
+    }
+    redirect(`/login?error=${encodeURIComponent(error.message)}`);
+  }
 
   revalidatePath("/");
   redirect("/");

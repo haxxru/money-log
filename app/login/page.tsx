@@ -22,6 +22,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const errorMessage =
     searchParams?.error === "config"
       ? "Supabase 환경변수가 설정되지 않았습니다. .env.local을 확인해주세요."
+      : searchParams?.error === "invalid_credentials"
+        ? "이메일 또는 비밀번호가 올바르지 않습니다."
+        : searchParams?.error
+          ? decodeURIComponent(searchParams.error)
       : undefined;
 
   return <AuthShell mode="login" action={signInAction} errorMessage={errorMessage} />;
