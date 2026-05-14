@@ -65,8 +65,6 @@ export async function requireUser() {
 
   if (!user) redirect("/login");
 
-  await ensureCurrentMonthSalary(user.id);
-
   return { supabase, user };
 }
 
