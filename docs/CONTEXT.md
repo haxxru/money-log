@@ -1,0 +1,25 @@
+# CONTEXT
+
+- 목표: `ui-demo` 전역 UI를 기준으로 가계부 기능을 운영형으로 연결한다.
+- 현재 라우트:
+  - `/` 대시보드
+  - `/transactions` 거래 내역
+  - `/budget` 예산
+  - `/analytics` 분석
+  - `/goals` 목표
+  - `/login`, `/signup` 인증
+- 인증/회원:
+  - Supabase Auth 이메일/비밀번호 사용
+  - 회원가입 입력: 닉네임, 초기 잔액, 월급일, 월급액, 이메일, 비밀번호
+  - 회원가입 메타데이터는 `auth.users.raw_user_meta_data`로 저장되며 DB 트리거로 `user_profiles` 초기화 전제
+- 데이터 동작:
+  - `expenses`는 `amount`(양수 저장) + `tx_type` + `category` 정규 컬럼 우선 사용
+  - 구 스키마(`tx_type/category` 없음)에서도 fallback으로 조회/저장 동작
+  - 대시보드 거래 추가/수정/삭제가 서버 액션으로 DB에 반영
+  - 거래내역 탭에서 행 단위 거래 수정/삭제 가능
+  - 로그인 후 `ensureCurrentMonthSalary`가 이번 달 월급 거래 누락 시 1회 자동 생성
+  - 예산은 `budgets` 테이블에 `(user_id, category)` upsert
+  - 목표는 `goals` 테이블에 추가/진행률 수정/삭제
+- 필수 환경변수:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`

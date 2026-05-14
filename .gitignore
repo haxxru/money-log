@@ -1,0 +1,7 @@
+node_modules
+.next   
+ui-demo
+.env.local
+.DS_Store
+*.local
+*.log
