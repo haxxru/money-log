@@ -94,6 +94,17 @@ const PERIODS: { v: Period; label: string; days: number; bucketDays: number }[] 
 const krw = (n: number) => `₩${Math.abs(n).toLocaleString("ko-KR")}`;
 const isInitialBalanceTx = (name: string) => name === "초기 잔액" || name === "[수입] 초기 잔액";
 
+function percentChange(current: number, previous: number) {
+  if (previous <= 0) return null;
+  return ((current - previous) / previous) * 100;
+}
+
+function formatDelta(change: number | null) {
+  if (change === null) return { text: "데이터 없음", positive: true, hasData: false };
+  const rounded = Math.abs(change).toFixed(1);
+  return { text: `${change >= 0 ? "+" : "-"}${rounded}%`, positive: change >= 0, hasData: true };
+}
+
 export default function DashboardClient({ nickname, tx, initialBalance }: Props) {
   const router = useRouter();
   const [transactions, setTransactions] = useState<Tx[]>(tx);
@@ -211,6 +222,48 @@ export default function DashboardClient({ nickname, tx, initialBalance }: Props)
     return "최근 거래 데이터를 바탕으로 절약 패턴을 분석 중입니다.";
   }, [monthSpend, budgetWithUsage, categoryData, totalSpent, monthIncome]);
 
+  const monthStartDate = useMemo(() => new Date(today.getFullYear(), today.getMonth(), 1), [today]);
+  const prevMonthStartDate = useMemo(() => new Date(today.getFullYear(), today.getMonth() - 1, 1), [today]);
+  const prevMonthEndDate = monthStartDate;
+
+  const prevMonthIncome = useMemo(
+    () =>
+      operationalTransactions
+        .filter((t) => {
+          const d = new Date(t.date);
+          return d >= prevMonthStartDate && d < prevMonthEndDate && t.amount > 0;
+        })
+        .reduce((s, t) => s + t.amount, 0),
+    [operationalTransactions, prevMonthStartDate, prevMonthEndDate]
+  );
+
+  const prevMonthSpend = useMemo(
+    () =>
+      operationalTransactions
+        .filter((t) => {
+          const d = new Date(t.date);
+          return d >= prevMonthStartDate && d < prevMonthEndDate && t.amount < 0;
+        })
+        .reduce((s, t) => s + -t.amount, 0),
+    [operationalTransactions, prevMonthStartDate, prevMonthEndDate]
+  );
+
+  const prevMonthSavings = Math.max(0, prevMonthIncome - prevMonthSpend);
+  const prevMonthBalance = useMemo(
+    () =>
+      initialBalance +
+      operationalTransactions
+        .filter((t) => new Date(t.date) < monthStartDate)
+        .reduce((s, t) => s + t.amount, 0),
+    [initialBalance, operationalTransactions, monthStartDate]
+  );
+
+  const balanceDelta = formatDelta(percentChange(balance, prevMonthBalance));
+  const incomeDelta = formatDelta(percentChange(monthIncome, prevMonthIncome));
+  const spendDeltaRaw = percentChange(monthSpend, prevMonthSpend);
+  const spendDelta = spendDeltaRaw === null ? { text: "데이터 없음", positive: true, hasData: false } : formatDelta(-spendDeltaRaw);
+  const savingsDelta = formatDelta(percentChange(savings, prevMonthSavings));
+
   const handleSaveBudget = (name: Cat, total: number) => {
     setBudgets((prev) => prev.map((b) => (b.name === name ? { ...b, total } : b)));
     setEditingBudget(null);
@@ -240,10 +293,10 @@ export default function DashboardClient({ nickname, tx, initialBalance }: Props)
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="잔액" value={krw(balance)} delta="+12.4%" positive icon={Wallet} gradient />
-        <StatCard label="이번 달 수입" value={krw(monthIncome)} delta="+4.2%" positive icon={TrendingUp} />
-        <StatCard label="이번 달 지출" value={krw(monthSpend)} delta="-6.8%" positive icon={CreditCard} />
-        <StatCard label="저축" value={krw(savings)} delta="+18.1%" positive icon={PiggyBank} />
+        <StatCard label="잔액" value={krw(balance)} delta={balanceDelta.text} positive={balanceDelta.positive} hasDeltaData={balanceDelta.hasData} icon={Wallet} gradient />
+        <StatCard label="이번 달 수입" value={krw(monthIncome)} delta={incomeDelta.text} positive={incomeDelta.positive} hasDeltaData={incomeDelta.hasData} icon={TrendingUp} />
+        <StatCard label="이번 달 지출" value={krw(monthSpend)} delta={spendDelta.text} positive={spendDelta.positive} hasDeltaData={spendDelta.hasData} icon={CreditCard} />
+        <StatCard label="저축" value={krw(savings)} delta={savingsDelta.text} positive={savingsDelta.positive} hasDeltaData={savingsDelta.hasData} icon={PiggyBank} />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -554,6 +607,7 @@ function StatCard({
   value,
   delta,
   positive,
+  hasDeltaData = true,
   icon: Icon,
   gradient,
 }: {
@@ -561,6 +615,7 @@ function StatCard({
   value: string;
   delta: string;
   positive?: boolean;
+  hasDeltaData?: boolean;
   icon: React.ElementType;
   gradient?: boolean;
 }) {
@@ -580,10 +635,10 @@ function StatCard({
         </div>
       </div>
       <div className={`tabular mt-4 text-2xl font-semibold tracking-tight ${gradient ? "text-primary-foreground" : ""}`}>{value}</div>
-      <div className={`mt-1 flex items-center gap-1 text-xs ${gradient ? "text-primary-foreground/85" : positive ? "text-success" : "text-destructive"}`}>
-        {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+      <div className={`mt-1 flex items-center gap-1 text-xs ${gradient ? "text-primary-foreground/85" : !hasDeltaData ? "text-muted-foreground" : positive ? "text-success" : "text-destructive"}`}>
+        {hasDeltaData ? (positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />) : null}
         <span className="tabular">{delta}</span>
-        <span className={gradient ? "text-primary-foreground/70" : "text-muted-foreground"}>지난달 대비</span>
+        <span className={gradient ? "text-primary-foreground/70" : "text-muted-foreground"}>{hasDeltaData ? "지난달 대비" : ""}</span>
       </div>
     </div>
   );
