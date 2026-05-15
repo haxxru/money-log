@@ -21,6 +21,8 @@
   - 거래내역 탭에서 행 단위 거래 수정/삭제 가능
   - 대시보드 KPI의 `지난달 대비`는 고정값이 아닌 실데이터 기준 동적 계산
   - 지난달 데이터가 없는 신규 계정은 `지난달 대비` 대신 `데이터 없음` 표시
+  - 거래내역/대시보드에서 `/api/transactions/export`를 통해 CSV/XLSX 다운로드 가능
+  - 거래내역에서 `/api/transactions/import`로 CSV/XLSX 업로드 시 거래 일괄 저장 가능(유효성 실패 행 skip)
   - 로그인 후 `ensureCurrentMonthSalary`가 이번 달 월급 거래 누락 시 1회 자동 생성
   - 예산은 `budgets` 테이블에 `(user_id, category)` upsert
   - 목표는 `goals` 테이블에 추가/진행률 수정/삭제

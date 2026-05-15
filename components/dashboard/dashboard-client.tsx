@@ -413,9 +413,12 @@ export default function DashboardClient({ nickname, tx, initialBalance }: Props)
               <h2 className="text-base font-semibold">거래 내역</h2>
               <p className="text-xs text-muted-foreground">{filteredTx.length}건</p>
             </div>
-            <button className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/40 px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+            <a
+              href="/api/transactions/export?format=xlsx"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/40 px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+            >
               <Download className="h-3.5 w-3.5" /> 엑셀 내보내기
-            </button>
+            </a>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <div className="relative min-w-[180px] flex-1">
