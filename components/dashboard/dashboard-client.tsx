@@ -223,6 +223,13 @@ export default function DashboardClient({ nickname, tx, initialBalance }: Props)
     return "최근 거래 데이터를 바탕으로 절약 패턴을 분석 중입니다.";
   }, [monthSpend, budgetWithUsage, categoryData, totalSpent, monthIncome]);
 
+  const spendRatioText = useMemo(() => {
+    if (monthIncome <= 0) return "이번 달 수입 데이터가 없어 지출 비율을 계산할 수 없어요.";
+    const ratio = Math.round((monthSpend / monthIncome) * 100);
+    if (!Number.isFinite(ratio) || ratio > 999) return "이번 달 지출이 수입 대비 매우 큰 상태예요. 지출 점검이 필요해요.";
+    return `이번 달 지출은 ${ratio}% — 잘 관리하고 계세요.`;
+  }, [monthIncome, monthSpend]);
+
   const monthStartDate = useMemo(() => new Date(today.getFullYear(), today.getMonth(), 1), [today]);
   const prevMonthStartDate = useMemo(() => new Date(today.getFullYear(), today.getMonth() - 1, 1), [today]);
   const prevMonthEndDate = monthStartDate;
@@ -277,7 +284,7 @@ export default function DashboardClient({ nickname, tx, initialBalance }: Props)
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{today.getFullYear()}년 {today.getMonth() + 1}월</p>
           <h1 className="mt-1.5 text-2xl font-semibold tracking-tight md:text-3xl">안녕하세요, {nickname}님 👋</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            이번 달 지출은 {monthIncome > 0 ? Math.round((monthSpend / monthIncome) * 100) : 0}% — 잘 관리하고 계세요.
+            {spendRatioText}
           </p>
         </div>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
