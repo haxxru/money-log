@@ -4,6 +4,7 @@ import { addTransactionAction, deleteTransactionAction, updateTransactionAction 
 import AppFrame from "@/components/layout/app-frame";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import CurrencyInput from "@/components/ui/currency-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getUserExpenses, requireUser, type Category } from "@/lib/ledger";
@@ -43,7 +44,7 @@ export default async function TransactionsPage() {
             </div>
             <div>
               <Label htmlFor="amount">금액</Label>
-              <Input id="amount" name="amount" type="number" min="1" step="1" required />
+              <CurrencyInput id="amount" name="amount" min={1} placeholder="10,000" required />
             </div>
             <div>
               <Label htmlFor="date">날짜</Label>

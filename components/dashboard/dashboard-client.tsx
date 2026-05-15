@@ -93,6 +93,7 @@ const PERIODS: { v: Period; label: string; days: number; bucketDays: number }[] 
 
 const krw = (n: number) => `₩${Math.abs(n).toLocaleString("ko-KR")}`;
 const isInitialBalanceTx = (name: string) => name === "초기 잔액" || name === "[수입] 초기 잔액";
+const digitsOnly = (value: string) => value.replace(/[^\d]/g, "");
 
 function percentChange(current: number, previous: number) {
   if (previous <= 0) return null;
@@ -681,7 +682,19 @@ function AddTxDialog({ onSubmitted }: { onSubmitted: () => void }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="tx-amount">금액 (₩)</Label>
-            <Input id="tx-amount" name="amount" inputMode="numeric" type="number" min="1" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" required />
+            <Input
+              id="tx-amount"
+              name="amount"
+              inputMode="numeric"
+              type="text"
+              value={amount}
+              onChange={(e) => {
+                const raw = digitsOnly(e.target.value);
+                setAmount(raw ? Number(raw).toLocaleString("ko-KR") : "");
+              }}
+              placeholder="10,000"
+              required
+            />
           </div>
           <div>
             <Label htmlFor="tx-date">날짜</Label>

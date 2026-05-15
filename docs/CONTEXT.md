@@ -7,10 +7,12 @@
   - `/budget` 예산
   - `/analytics` 분석
   - `/goals` 목표
+  - `/settings` 설정(정기 급여)
   - `/login`, `/signup` 인증
 - 인증/회원:
   - Supabase Auth 이메일/비밀번호 사용
-  - 회원가입 입력: 닉네임, 초기 잔액, 월급일, 월급액, 이메일, 비밀번호
+  - 회원가입 입력: 닉네임, 초기 잔액, 이메일, 비밀번호
+  - 월급일/월급액은 `/settings`에서 설정
   - 회원가입 메타데이터는 `auth.users.raw_user_meta_data`로 저장되며 DB 트리거로 `user_profiles` 초기화 전제
 - 데이터 동작:
   - `expenses`는 `amount`(양수 저장) + `tx_type` + `category` 정규 컬럼 우선 사용
@@ -22,6 +24,7 @@
   - 로그인 후 `ensureCurrentMonthSalary`가 이번 달 월급 거래 누락 시 1회 자동 생성
   - 예산은 `budgets` 테이블에 `(user_id, category)` upsert
   - 목표는 `goals` 테이블에 추가/진행률 수정/삭제
+  - 회원가입/설정/거래추가 금액 입력은 3자리 콤마 포맷 UI를 사용하며, 서버 액션은 콤마 문자열을 정수로 파싱해 저장
 - 필수 환경변수:
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`

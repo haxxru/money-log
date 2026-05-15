@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRight, Lock, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import CurrencyInput from "@/components/ui/currency-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -68,17 +69,7 @@ export default function AuthShell({ mode, action, errorMessage }: Props) {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="initial_balance">현재 잔액 (원)</Label>
-                    <Input id="initial_balance" name="initial_balance" type="number" min="0" step="1000" placeholder="5000000" required />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="salary_day">월급일 (일)</Label>
-                      <Input id="salary_day" name="salary_day" type="number" min="1" max="31" placeholder="25" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="salary_amount">월급액 (원)</Label>
-                      <Input id="salary_amount" name="salary_amount" type="number" min="0" step="1000" placeholder="3200000" required />
-                    </div>
+                    <CurrencyInput id="initial_balance" name="initial_balance" placeholder="5,000,000" required />
                   </div>
                 </>
               ) : null}

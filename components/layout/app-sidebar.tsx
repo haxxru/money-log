@@ -65,9 +65,11 @@ export default function AppSidebar() {
       <SidebarFooter className="p-3">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="설정">
-              <Settings className="h-4 w-4" />
-              <span>설정</span>
+            <SidebarMenuButton asChild isActive={pathname === "/settings"} tooltip="설정">
+              <Link href="/settings">
+                <Settings className="h-4 w-4" />
+                <span>설정</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

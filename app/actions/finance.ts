@@ -6,6 +6,12 @@ import type { Category } from "@/lib/ledger";
 
 const CATEGORIES: Category[] = ["식비", "주거", "교통", "쇼핑", "여가", "수입", "기타"];
 
+function parseAmount(value: FormDataEntryValue | null, fallback = 0) {
+  const normalized = String(value ?? "").replace(/[^\d.-]/g, "");
+  const parsed = Number(normalized);
+  return Number.isNaN(parsed) ? fallback : parsed;
+}
+
 function mustUserId() {
   return async () => {
     const supabase = createSupabaseServerClient();
@@ -21,7 +27,7 @@ function mustUserId() {
 export async function addTransactionAction(formData: FormData) {
   const { supabase, userId } = await mustUserId()();
   const description = String(formData.get("description") ?? "").trim();
-  const amount = Number(formData.get("amount") ?? 0);
+  const amount = parseAmount(formData.get("amount"), 0);
   const date = String(formData.get("date") ?? "").trim();
   const type = String(formData.get("type") ?? "expense");
   const category = String(formData.get("category") ?? "기타");
@@ -77,7 +83,7 @@ export async function updateTransactionAction(formData: FormData) {
   const { supabase, userId } = await mustUserId()();
   const id = Number(formData.get("id") ?? 0);
   const description = String(formData.get("description") ?? "").trim();
-  const amount = Number(formData.get("amount") ?? 0);
+  const amount = parseAmount(formData.get("amount"), 0);
   const date = String(formData.get("date") ?? "").trim();
   const type = String(formData.get("type") ?? "expense");
   const category = String(formData.get("category") ?? "기타");
@@ -185,4 +191,29 @@ export async function deleteGoalAction(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/goals");
+}
+
+export async function updateSalarySettingsAction(formData: FormData) {
+  const { supabase, userId } = await mustUserId()();
+  const salaryDay = Number(formData.get("salary_day") ?? 25);
+  const salaryAmount = parseAmount(formData.get("salary_amount"), 0);
+
+  if (Number.isNaN(salaryDay) || salaryDay < 1 || salaryDay > 31) {
+    throw new Error("월급일은 1~31 사이여야 합니다.");
+  }
+  if (Number.isNaN(salaryAmount) || salaryAmount < 0) {
+    throw new Error("월급액은 0 이상이어야 합니다.");
+  }
+
+  const { error } = await supabase
+    .from("user_profiles")
+    .update({
+      salary_day: Math.floor(salaryDay),
+      salary_amount: Math.floor(salaryAmount),
+    })
+    .eq("user_id", userId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  revalidatePath("/settings");
 }

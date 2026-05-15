@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+function parseAmount(value: FormDataEntryValue | null, fallback = 0) {
+  const normalized = String(value ?? "").replace(/[^\d.-]/g, "");
+  const parsed = Number(normalized);
+  return Number.isNaN(parsed) ? fallback : parsed;
+}
+
 export async function signInAction(formData: FormData) {
   const supabase = createSupabaseServerClient();
   if (!supabase) redirect("/login?error=config");
@@ -28,17 +34,13 @@ export async function signUpAction(formData: FormData) {
   if (!supabase) redirect("/signup?error=config");
 
   const nickname = String(formData.get("nickname") ?? "").trim();
-  const initialBalance = Number(formData.get("initial_balance") ?? 0);
-  const salaryDay = Number(formData.get("salary_day") ?? 25);
-  const salaryAmount = Number(formData.get("salary_amount") ?? 0);
+  const initialBalance = parseAmount(formData.get("initial_balance"), 0);
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
   if (!nickname) redirect("/signup?error=nickname");
 
   const normalizedInitialBalance = Number.isNaN(initialBalance) ? 0 : Math.max(0, Math.floor(initialBalance));
-  const normalizedSalaryDay = Number.isNaN(salaryDay) ? 25 : Math.min(31, Math.max(1, Math.floor(salaryDay)));
-  const normalizedSalaryAmount = Number.isNaN(salaryAmount) ? 0 : Math.max(0, Math.floor(salaryAmount));
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -47,8 +49,6 @@ export async function signUpAction(formData: FormData) {
       data: {
         nickname,
         initial_balance: normalizedInitialBalance,
-        salary_day: normalizedSalaryDay,
-        salary_amount: normalizedSalaryAmount,
       }
     }
   });
